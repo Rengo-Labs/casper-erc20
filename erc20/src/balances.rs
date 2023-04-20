@@ -71,11 +71,5 @@ pub(crate) fn transfer_balance(
     write_balance_to(balances_uref, sender, new_sender_balance);
     write_balance_to(balances_uref, recipient, new_recipient_balance);
 
-    emit(&ERC20Event::Transfer {
-        from: sender,
-        to: recipient,
-        value: amount,
-    });
-
     Ok(())
 }

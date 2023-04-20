@@ -32,11 +32,6 @@ pub(crate) fn write_allowance_to(
     amount: U256,
 ) {
     let dictionary_item_key = make_dictionary_item_key(owner, spender);
-    emit(&ERC20Event::Approval {
-        owner,
-        spender,
-        value: amount,
-    });
     storage::dictionary_put(allowances_uref, &dictionary_item_key, amount)
 }
 

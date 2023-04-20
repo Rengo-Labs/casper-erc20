@@ -11,7 +11,6 @@
 //! ```
 
 #![warn(missing_docs)]
-#![no_std]
 
 extern crate alloc;
 
@@ -540,7 +539,7 @@ impl ERC20 {
         let mut named_keys = NamedKeys::new();
 
         let name_key = {
-            let name_uref = storage::new_uref(name).into_read();
+            let name_uref = storage::new_uref(format!("{}", name)).into_read();
             Key::from(name_uref)
         };
 
@@ -617,16 +616,34 @@ impl ERC20 {
             origin_contract_address_key,
         );
 
-        let (contract_package_hash, _) = storage::create_contract_package_at_hash();
-        named_keys.insert(
-            "contract_package_hash".to_string(),
-            Key::from(storage::new_uref(contract_package_hash).into_read_write()),
-        );
-
+        let (package_hash, access_token) = storage::create_contract_package_at_hash();
+        
         let (contract_hash, _version) =
-            storage::add_contract_version(contract_package_hash, entry_points, named_keys);
+            storage::add_contract_version(package_hash, entry_points, named_keys);
         // let (contract_hash, _version) =
         //     storage::new_locked_contract(entry_points, Some(named_keys), None, None);
+
+        // Store contract in the account's named keys.
+        runtime::put_key(
+          &format!("{}_contract_package_hash", name),
+          package_hash.into(),
+        );
+        runtime::put_key(
+          &format!("{}_contract_package_hash_wrapped", name),
+          storage::new_uref(package_hash).into(),
+        );
+        runtime::put_key(
+          &format!("{}_contract_contract_hash", name),
+          contract_hash.into(),
+        );
+        runtime::put_key(
+          &format!("{}_contract_contract_hash_wrapped", name),
+          storage::new_uref(contract_hash).into(),
+        );
+        runtime::put_key(
+          &format!("{}_contract_package_access_token", name),
+          access_token.into(),
+        );        
 
         // Hash of the installed contract will be reachable through named keys.
         runtime::put_key(contract_key_name, Key::from(contract_hash));
